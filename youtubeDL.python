@@ -13,8 +13,8 @@ def show_progress_bar(stream, chunk, file_handle, bytes_remaining):
 		compute = int(file_handle.tell()*100/(file_handle.tell()+bytes_remaining))
 		progressVar.set(compute)
 		progressStr.set(str(compute) + "%")
-		time.sleep(0.01)
 		fenetre.update()
+		time.sleep(1)
 
 def DownloadVideo():
 	url = urlText.get()
