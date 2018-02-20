@@ -1,12 +1,26 @@
 from pytube import YouTube
 from tkinter import *
+from tkinter import ttk
 import tkinter.filedialog
+import time
+
+firstAccess = True
+
+def show_progress_bar(stream, chunk, file_handle, bytes_remaining):
+	global progressVar
+	global progressStr
+	if(bytes_remaining%100==0):
+		compute = int(file_handle.tell()*100/(file_handle.tell()+bytes_remaining))
+		progressVar.set(compute)
+		progressStr.set(str(compute) + "%")
+		time.sleep(0.01)
+		fenetre.update()
 
 def DownloadVideo():
 	url = urlText.get()
 	yt = YouTube(url)
-	yt.streams.filter(file_extension='mp4', only_audio=True).first().download(dirLabelText.get())
-
+	yt.register_on_progress_callback(show_progress_bar)
+	yt.streams.filter(file_extension='mp4', only_audio=checkVar.get()).first().download(dirLabelText.get())
 
 def ChooseDir():
 	dirname = tkinter.filedialog.askdirectory(initialdir="/",title='Please select a directory')
@@ -16,25 +30,50 @@ fenetre = Tk()
 fenetre.title("Youtube Downloader")
 fenetre.minsize(width=400, height=300)
 
-progressBar = ProgressBar(fenetre, orient="horizontal", length=50)
-
-urlTitle = Label(fenetre, text = 'URL Youtube')
-urlTitle.pack(padx = 5, pady = 5)
+#URL
+frameURL = LabelFrame(fenetre, text="URL Youtube", padx=10, pady=10)
+frameURL.pack(fill=X, padx = 5, pady = 5)
 
 urlText = StringVar()
-urlChamp = Entry(fenetre, textvariable = urlText, width=50)
-urlChamp.pack(padx = 5, pady = 5)
+urlChamp = Entry(frameURL, textvariable = urlText)
+urlChamp.pack(fill=X, padx = 5, pady = 5)
 
-buttonDL = Button(fenetre, text = 'Télécharger', command = DownloadVideo)
-buttonDL.pack()
+#Dossier
+frameDirChoice = LabelFrame(fenetre, text = "Choix du dossier", padx=5, pady=5)
+frameDirChoice.pack(fill=X, padx = 5, pady = 5)
 
-buttonDir = Button(fenetre, text = 'Choisir un dossier', command = ChooseDir)
-buttonDir.pack()
+buttonDir = Button(frameDirChoice, text = 'Choisir un dossier', command = ChooseDir)
+buttonDir.pack(fill=X, padx = 5, pady = 5)
 
 dirLabelText = StringVar()
 dirLabelText.set('.\VideosDL')
-dirLabel = Label(fenetre, textvariable = dirLabelText)
-dirLabel.pack()
+dirLabel = Label(frameDirChoice, textvariable = dirLabelText)
+dirLabel.pack(side=LEFT)
+
+#Download
+frameDL = LabelFrame(fenetre, text = "Téléchargement", padx=5, pady=5)
+frameDL.pack(fill=X, padx = 5, pady = 5)
+
+buttonDL = Button(frameDL, text = 'Télécharger', command = DownloadVideo)
+buttonDL.pack(fill=X, padx = 5, pady = 5)
+
+checkVar = IntVar()
+checkbox = Checkbutton(frameDL, text="Seulement audio", variable=checkVar)
+checkbox.pack(side=LEFT)
+
+
+#Progression
+frameProgression = LabelFrame(fenetre, text="Progression", padx=5, pady=5, width=300)
+frameProgression.pack(fill=X, padx = 5, pady = 5)
+
+progressVar = IntVar()
+progressVar.set(0)
+progressStr = StringVar()
+progressStr.set("0%")
+labelProgress = Label(frameProgression, textvariable=progressStr)
+labelProgress.pack(side=LEFT)
+progressBar = ttk.Progressbar(frameProgression, orient="horizontal", length=150, mode="determinate", variable=progressVar)
+progressBar.pack(fill=X)
 
 fenetre.mainloop()
 
